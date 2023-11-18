@@ -3,6 +3,7 @@ const bip39 = require('bip39');
 const { derivePath } = require('ed25519-hd-key')
 const nacl = require('tweetnacl');
 const rl = require('readline-sync')
+const crypto = require('crypto');
 const fs = require('fs')
 
 /*
@@ -11,12 +12,12 @@ const fs = require('fs')
 */
 
 async function createWallet(){
-	const mnemonic = bip39.generateMnemonic(256);
+    const mnemonic = bip39.generateMnemonic(256, crypto.randomBytes);
 	const x = derivePath("m/44'/501'/0'/0'", bip39.mnemonicToSeedSync(mnemonic)).key;
 	const pk = nacl.sign.keyPair.fromSeed(x).secretKey;
 	const acc = new solanaWeb3.Account(pk);
 	return {
-		'address': acc.publicKey.toBase58(), 
+		'address': acc.publicKey.toBase58(),
 		'pk': pk,
 		'mnemonic': mnemonic
 	}
@@ -25,7 +26,8 @@ async function createWallet(){
 async function generateWallet( n, o){
 	for (var i = 1; i <= n; i++) {
 		const wallet = await createWallet()
-		const data = `Address : ${wallet.address}\nPrivateKey: [${wallet.pk}]\nMnemonic: ${wallet.mnemonic}\n`;
+		// const data = `Address : ${wallet.address}\nPrivateKey: [${wallet.pk}]\nMnemonic: ${wallet.mnemonic}\n`;
+		const data = `Address : ${wallet.address}\nMnemonic: ${wallet.mnemonic}\n`;
 		if(o){
 			fs.appendFile( o, data+'\n', (err) => { if(err) throw err; })
 		}
